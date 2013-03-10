@@ -4,4 +4,12 @@ cabal-dev
 *.hi
 *.chi
 *.chs.h
+*.tix
+*.ps
+*.pdf
+*.prof
+*.hp
+*_flymake.hs
 .virthualenv
+/Setup_flymake.hs
+/example/example

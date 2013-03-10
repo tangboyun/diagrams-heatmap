@@ -1,0 +1,42 @@
+name:                diagrams-heatmap
+version:             0.1.0.0
+synopsis:            Hierarchical Clustering Heatmaps
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Boyun Tang
+maintainer:          tangboyun@hotmail.com
+stability:           alpha
+-- copyright:           
+category:            Bioinformatics, Graphics
+build-type:          Simple
+cabal-version:       >=1.8
+data-files:          README.md
+
+library
+  hs-source-dirs:      src
+
+  exposed-modules:     Diagrams.HeatMap
+                       Diagrams.HeatMap.Type
+                       Diagrams.HeatMap.Impl
+                       Diagrams.HeatMap.Unsafe
+  
+  -- other-modules:       Diagrams.HeatMap.Type
+  --                      Diagrams.HeatMap.Impl
+  --                      Diagrams.HeatMap.Unsafe
+                       
+  build-depends:       base,
+                       cairo,
+                       colour,
+                       diagrams-core >= 0.6.0.2,
+                       diagrams-lib == 0.6.0.1,
+                       directory,
+                       hierarchical-clustering,
+                       hierarchical-clustering-diagrams,
+                       split,
+                       statistics,
+                       text,
+                       vector,
+                       unordered-containers
+                       
+  ghc-options:         -Wall
