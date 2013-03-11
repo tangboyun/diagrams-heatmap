@@ -23,20 +23,21 @@ import qualified Data.Vector.Unboxed as UV
 import Control.Monad
 import System.Directory
 import Data.Colour.RGBSpace
-import Data.Colour.SRGB
+import Data.Colour.SRGB.Linear
 
 -- matrix order
 plotMatrixCairo :: Para -> Matrix -> FilePath
 {-# NOINLINE plotMatrixCairo #-}
 plotMatrixCairo para m =
     unsafePerformIO $
-    withImageSurface FormatRGB24
+    withImageSurface FormatARGB32
      (round mW) (round mH) $ \surf -> do
          let ls = [0..UV.length v - 1]
              v = case order m of
                    RowMajor -> dat m
                    ColumnMajor -> dat $ changeOrder m
-         renderWith surf $
+         renderWith surf $ do
+             clearSurface
              forM_ ls $ \idx -> do
                  let (r,c) = idx `divMod` j
                      value = v `atUV` idx
@@ -57,5 +58,9 @@ plotMatrixCairo para m =
       i = nRow m
       j = nCol m
       myRect x y = rectangle x y w h
+      clearSurface = do
+          setSourceRGBA 0 0 0 0
+          rectangle 0 0 mW mH
+          fill
       setRGB r g b = setSourceRGBA r g b 1
-      setColor co = uncurryRGB setRGB (toSRGB co)
+      setColor co = uncurryRGB setRGB (toRGB co)
