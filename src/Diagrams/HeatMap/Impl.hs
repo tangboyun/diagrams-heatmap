@@ -12,14 +12,10 @@
 -----------------------------------------------------------------------------
 module Diagrams.HeatMap.Impl where
 
-import           Control.Monad
 import           Data.Colour
-import           Data.Colour.RGBSpace
-import           Data.Colour.SRGB
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
 import           Diagrams.HeatMap.Type
-import           System.IO
 
 atV :: V.Vector a -> Int -> a
 {-# INLINE atV #-}

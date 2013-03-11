@@ -19,7 +19,6 @@ import           Data.Colour.Names
 import           Data.Colour.RGBSpace
 import           Data.Colour.RGBSpace.HSL
 import           Data.Colour.SRGB
-import           Data.Colour.SRGB.Linear
 import           Data.Foldable hiding (concatMap)
 import           Data.Function
 import           Data.HashMap.Strict (HashMap)
@@ -27,6 +26,7 @@ import qualified Data.HashMap.Strict as H
 import           Data.List
 import           Data.List.Split
 import           Data.Maybe
+import           Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import           Data.Text.Lazy.Builder
@@ -37,7 +37,7 @@ import qualified Diagrams.Dendrogram as D
 import           Diagrams.HeatMap.Impl
 import           Diagrams.HeatMap.Type
 import           Diagrams.HeatMap.Unsafe
-import           Diagrams.Prelude hiding (trace)
+import           Diagrams.Prelude hiding (trace,(<>))
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Text
 import           Statistics.Sample
@@ -56,7 +56,7 @@ mkColorBar para =
         tMax = toText vMax
         tMean = toText vMean
     in case color of
-        Two lC hC ->
+        Two _ _ ->
             let ds = toD [vMin,vMin+step..vMax]
             in case colorBarPos para of
                 Horizontal ->
@@ -77,7 +77,7 @@ mkColorBar para =
                                 # lcA transparent # alignL
                     in beside' (r2 (h,mW)) (strutX (0.3*h) ||| toT tMax) $
                        beside' (r2 (h,-mW)) (strutX (0.3*h) ||| toT tMin) (bar # centerX)
-        Three lC mC hC ->   
+        Three _ _ _ ->   
             let rhs = [vMean,vMean+step..vMax]
                 lhs = reverse [vMean,vMean-step..vMin]
             in case colorBarPos para of
@@ -108,7 +108,7 @@ mkColorBar para =
                        beside' unitX (toT tMean) (bar # centerX)
   where
     beside' v b a = beside v a b
-    n = 200
+    n = 200 :: Int
     ratio = 0.5
     barHWRatio = 0.05
     mW = case colorBarPos para of
@@ -123,7 +123,7 @@ mkColorBar para =
 
 
 mkLabels :: (Backend b R2,Renderable (Path R2) b,Renderable Text b) => Bool -> Double -> Double -> String -> Maybe (V.Vector T.Text) -> [Diagram b R2]
-mkLabels isLeft sizeFont maxSize fontName textVec =
+mkLabels isLeft sizeFont maxSize fName textVec =
     let wVsH = 0.65
         size = if sizeFont > maxSize
                then maxSize
@@ -134,14 +134,14 @@ mkLabels isLeft sizeFont maxSize fontName textVec =
             map ((\str ->
                    if isLeft
                    then alignedText 0 0.5 str
-                        # font fontName
+                        # font fName
                         # fontSize (0.95 * size) <>
                         strutY size <>
                         rect ((fromIntegral $ length str) * size * wVsH) maxSize
                         # lcA transparent
                         # alignL
                    else alignedText 1 0.5 str
-                        # font fontName
+                        # font fName
                         # fontSize (0.95 * size) <>
                         strutY size <>
                         rect ((fromIntegral $ length str) * size * wVsH) maxSize
@@ -151,9 +151,9 @@ mkLabels isLeft sizeFont maxSize fontName textVec =
     
 
 toTree :: (Renderable (Path R2) b,Backend b R2) => Double -> Double -> Dendrogram a -> (Diagram b R2,Double)
-toTree lineWidth elemWidth dendro =
-    let (path,width) = first (D.dendrogramPath . fmap snd) $ D.fixedWidth elemWidth dendro
-        dia = stroke path # lw lineWidth # centerXY === strutX width
+toTree lineW elemWidth dendro =
+    let (path,wid) = first (D.dendrogramPath . fmap snd) $ D.fixedWidth elemWidth dendro
+        dia = stroke path # lw lineW # lc black # centerXY === strutX wid
         h = case dendro of
             Leaf _ -> 0
             Branch d _ _ -> d
@@ -226,23 +226,24 @@ clustering cluOpt m =
 toHeatMap :: (Renderable (Path R2) b,Renderable Text b,Renderable Image b,Backend b R2)
           => Para -> Dataset -> (Diagram b R2,Dataset)
 toHeatMap para dataset =
-    let lineWidth = 0.01
+    let rowTreeLineW = rowTreeLineWidth para
+        colTreeLineW = colTreeLineWidth para
         gapRatioForRowLabel = 0.02
-        gapRatioForColLabel = 0.05
-        groupBarWidthRatio = 0.05
+--        gapRatioForColLabel = 0.05
+--        groupBarWidthRatio = 0.05
         groupBarRatio = 0.5 * (sqrt 5 - 1)
         labelHash = case colLabels dataset of
             Nothing -> H.empty
             Just tVec ->
                 let uniqeGV = nub $ sort $ V.toList tVec
                     nGroup = length uniqeGV
-                    (h,s,l) = hslView $ toRGB red
+                    (hu,s,l) = hslView $ toSRGB red
                 in H.fromList $
                    zip uniqeGV $
                    map
                    (uncurryRGB sRGB .
                     (\newH -> hsl newH s l).
-                    (h+).(*(360 / (fromIntegral nGroup))) . fromIntegral
+                    (hu+).(*(360 / (fromIntegral nGroup))) . fromIntegral
                    ) [0..nGroup-1]
         matrix = datM dataset
         i = nRow matrix
@@ -284,20 +285,20 @@ toHeatMap para dataset =
                     BottomTree -> (BottomTree,unit_Y)
         matrixD = plotMatrix para newMatrix
         (rowLabelD,rowLabelV) =
-            let align =
+            let ali =
                     case rowTreePos of
                         LeftTree -> True
                         RightTree -> False
                 dia = beside (rotate (Deg 180) rowTreeV)
                       (strutX $ gapRatioForRowLabel * matrixWidth para) $
                       centerY $ vcat $
-                      mkLabels align (rowFontSize para) h
+                      mkLabels ali (rowFontSize para) h
                       (fontName para) (rowNames newDataset)
             in (dia,rotate (Deg 180) rowTreeV)
         (colLabelD,colLabelV) =
             let gW = w
                 gH = groupBarRatio * gW
-                align =
+                ali =
                     case colTreePos of
                         TopTree -> False
                         BottomTree -> True
@@ -320,10 +321,10 @@ toHeatMap para dataset =
                                 case colTreePos of
                                     TopTree -> rotate (Deg 90)
                                     BottomTree -> rotate (Deg 90)) $
-                               mkLabels align (colFontSize para) w
+                               mkLabels ali (colFontSize para) w
                                (fontName para) (colNames newDataset)
                       in case colLabels newDataset of
-                          Just lVec ->
+                          Just _ ->
                               centerXY $ hcat $
                               zipWith
                               (beside' colTreeV) rs ds
@@ -334,7 +335,7 @@ toHeatMap para dataset =
             in (dia,rotate (Deg 180) colTreeV)
         rowTree = if isNothing rowDendro
                   then mempty
-                  else let (dia,treeH) = toTree lineWidth h  $ fromJust rowDendro
+                  else let (dia,treeH) = toTree rowTreeLineW h  $ fromJust rowDendro
                            tree = scaleY (rowTreeHeight para / treeH) dia
                        in case rowTreePos of
                            LeftTree ->
@@ -343,7 +344,7 @@ toHeatMap para dataset =
                            RightTree -> transform (rotation $ Deg $ -90) tree
         colTree = if isNothing colDendro
                   then mempty
-                  else let (dia,treeH) = toTree lineWidth w $ fromJust colDendro
+                  else let (dia,treeH) = toTree colTreeLineW w $ fromJust colDendro
                            tree = scaleY (colTreeHeight para / treeH) dia
                        in case colTreePos of
                            TopTree -> tree
@@ -360,26 +361,25 @@ toHeatMap para dataset =
     in 
      case colorBarPos para of
         Horizontal ->
-            let sep = groupBarRatio * w * 0.5
-                gD = centerXY $ hcat' (CatOpts Cat sep Proxy) $
-                     map (\(r,t) -> rotate (Deg 90) $ alignR $ t ||| strutX (2*sep) ||| r) legends
+            let sep' = groupBarRatio * w * 0.5
+                gD = centerXY $ hcat' (CatOpts Cat sep' Proxy) $
+                     map (\(r,t) -> rotate (Deg 90) $ alignR $ t ||| strutX (2*sep') ||| r) legends
             in (centerXY $ (heatPlot === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
-            let sep = groupBarRatio * w * 0.5
-                gD = centerXY $ vcat' (CatOpts Cat sep Proxy) $
-                     map (\(r,t) -> alignL $ r ||| strutX (2*sep) ||| t) legends
+            let sep' = groupBarRatio * w * 0.5
+                gD = centerXY $ vcat' (CatOpts Cat sep' Proxy) $
+                     map (\(r,t) -> alignL $ r ||| strutX (2*sep') ||| t) legends
             in (centerXY (heatPlot ||| (gD # alignL # centerY === strutY (0.1 * matrixHeight para) === colorBar # alignL) # centerXY),newDataset)
 
 
 
 renderDataset :: T.Text -> Dataset -> TL.Text
-renderDataset sep dataset =
-    let firstLine = tVecToB (fromText sep) 0
+renderDataset sep' dataset =
+    let firstLine = tVecToB (fromText sep') 0
     in toLazyText $ go firstLine 0
   where
      i = nRow . datM $ dataset
      j = nCol . datM $ dataset
-     (<>) = mappend
      cNVec = fromMaybe (V.generate j (T.pack . show)) $
              colNames dataset
      rNVec = fromMaybe (V.generate i (T.pack . show)) $
@@ -390,19 +390,19 @@ renderDataset sep dataset =
              ColumnMajor -> dat $ changeOrder $ datM dataset
      dVecToB b idx v | idx < j =
          let b' = b <> realFloat (v `atUV` idx) <>
-                  fromText sep
+                  fromText sep'
              idx' = idx + 1
          in dVecToB b' idx' v
                      | otherwise = b <> fromText "\n"
      tVecToB b idx | idx < j =
          let b' = b <> fromText (cNVec `atV` idx) <>
-                  fromText sep
+                  fromText sep'
              idx' = idx + 1
          in tVecToB b' idx'
                    | otherwise = b <> fromText "\n"
      go b idx | idx < i =
          let b' = fromText (rNVec `atV` idx) <>
-                  fromText sep <>
+                  fromText sep' <>
                   dVecToB mempty 0 (UV.slice (idx*j) j vec)
              idx' = idx + 1
          in go b' idx'
@@ -421,15 +421,15 @@ pcc v1 v2 =
        let val1 = e1
            val2 = UV.unsafeIndex v2 i
            num' = num + (val1-m1) * (val2-m2)
-           res1' = res1 + (val1-m1)^2
-           res2' = res2 + (val2-m2)^2
+           res1' = res1 + (val1-m1)*(val1-m1)
+           res2' = res2 + (val2-m2)*(val2-m2)
        in (num',(res1',res2'))
      ) (0,(0,0)) v1
 {-# INLINE pcc #-}
 
 eucDis :: UV.Vector Double -> UV.Vector Double -> Double
 eucDis v1 v2 = 
-    sqrt $ UV.foldl1' (+) $ UV.map (^2) $ UV.zipWith (-) v1 v2
+    sqrt $ UV.foldl1' (+) $ UV.map (^(2::Int)) $ UV.zipWith (-) v1 v2
 {-# INLINE eucDis #-}
 
 
@@ -459,7 +459,7 @@ plotMatrixQuality para m =
         mW = matrixWidth para
         h = mH / fromIntegral iRow
         w = mW / fromIntegral iCol
-        n = iCol * iRow
+--        n = iCol * iRow
         ls = [0..UV.length vec - 1]
     in case order m of
         RowMajor ->

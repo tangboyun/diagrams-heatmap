@@ -66,10 +66,12 @@ data Para = Para
   , matrixHeight :: {-# UNPACK #-} !Double
   , matrixWidth :: {-# UNPACK #-} !Double
   , rowTreeHeight :: {-# UNPACK #-} !Double
+  , rowTreeLineWidth :: {-# UNPACK #-} !Double
   , colTreeHeight :: {-# UNPACK #-} !Double
+  , colTreeLineWidth :: {-# UNPACK #-} !Double
   , rowFontSize :: {-# UNPACK #-} !Double
   , colFontSize :: {-# UNPACK #-} !Double
   , fontName :: !String
   , colorBarPos :: !Pos
-  , tradeOff :: ! TradeOff
+  , tradeOff :: !TradeOff
   } 
