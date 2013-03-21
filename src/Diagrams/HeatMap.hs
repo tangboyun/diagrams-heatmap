@@ -253,7 +253,9 @@ toHeatMap para dataset =
         (rowDendro,colDendro) = clustering (clustOpt para) (datM dataset)
         rowIdxVec = fromMaybe (V.enumFromN 0 i) $ fmap (V.fromList . toList) $ rowDendro
         colIdxVec = fromMaybe (V.enumFromN 0 j) $ fmap (V.fromList . toList) $ colDendro
-        newMatrix = let v = dat matrix
+        newMatrix = let v = case order matrix of
+                            RowMajor -> dat matrix
+                            ColumnMajor -> dat $ changeOrder matrix
                     in matrix {dat = UV.generate (UV.length v)
                                      (\idx ->
                                        let (r,c) = idx `divMod` j
@@ -261,6 +263,7 @@ toHeatMap para dataset =
                                            c' = colIdxVec `atV` c
                                            idx' = r'*j+c'
                                        in v `atUV` idx')
+                              ,order = RowMajor      
                               }
         newDataset = let rNVec = rowNames dataset
                          cNVec = colNames dataset
