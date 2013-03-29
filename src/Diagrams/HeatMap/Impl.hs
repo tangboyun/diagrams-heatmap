@@ -38,8 +38,8 @@ chooseColor para v =
                then blend ((v-vMean)/vH) hC mC
                else blend ((vMean-v)/vL) lC mC
 
-
 changeOrder :: Matrix -> Matrix
+{-# INLINE changeOrder #-}
 changeOrder m =
     let i = nRow m
         j = nCol m
