@@ -11,19 +11,19 @@ stability:           alpha
 category:            Bioinformatics, Graphics
 build-type:          Simple
 cabal-version:       >=1.8
-data-files:          README.md
+data-files:          
 
 library
   hs-source-dirs:      src
 
   exposed-modules:     Diagrams.HeatMap
                        Diagrams.HeatMap.Type
+                       Diagrams.HeatMap.Internal
+                       Diagrams.HeatMap.Util
+  
+  other-modules:       Diagrams.HeatMap.Module
                        Diagrams.HeatMap.Impl
                        Diagrams.HeatMap.Unsafe
-  
-  -- other-modules:       Diagrams.HeatMap.Type
-  --                      Diagrams.HeatMap.Impl
-  --                      Diagrams.HeatMap.Unsafe
                        
   build-depends:       base,
                        cairo,
@@ -34,7 +34,7 @@ library
                        hierarchical-clustering,
                        hierarchical-clustering-diagrams,
                        split,
-                       statistics,
+--                       statistics,
                        text,
                        vector,
                        unordered-containers
