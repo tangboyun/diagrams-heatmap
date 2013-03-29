@@ -11,7 +11,21 @@
 --
 -----------------------------------------------------------------------------
 
-module Diagrams.HeatMap.Type where
+module Diagrams.HeatMap.Type
+       ( MatrixOrder(..)
+       , DisFunc
+       , Matrix(..)
+       , Dataset(..)
+       , ColorOpt(..)
+       , ColorVal(..)
+       , ClustOpt(..)
+       , Pos(..)
+       , HPos(..)
+       , VPos(..)
+       , TradeOff(..)
+       , Para(..)
+       , Linkage(..)
+       ) where
 
 import           Data.Clustering.Hierarchical
 import           Data.Colour
@@ -19,21 +33,24 @@ import           Data.Text (Text)
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
 
-data MatrixOrder = RowMajor | ColumnMajor deriving (Show,Eq)
+data MatrixOrder = RowMajor
+                 | ColumnMajor
+                 deriving (Show,Eq)
+                          
 type DisFunc = UV.Vector Double -> UV.Vector Double -> Double
 
 data Matrix = Matrix
-  { nRow :: {-# UNPACK #-} !Int
-  , nCol :: {-# UNPACK #-} !Int
-  , order :: !MatrixOrder
-  , dat :: !(UV.Vector Double)
+  { nRow :: Int
+  , nCol :: Int
+  , order :: MatrixOrder
+  , dat :: UV.Vector Double
   } deriving (Show,Eq)
     
 data Dataset = Dataset 
-  { rowNames :: !(Maybe (V.Vector Text))
-  , colNames :: !(Maybe (V.Vector Text))
-  , colLabels :: !(Maybe (V.Vector Text))
-  , datM :: !Matrix
+  { rowNames :: Maybe (V.Vector Text)
+  , colNames :: Maybe (V.Vector Text)
+  , colLabels :: Maybe (V.Vector Text)
+  , datM :: Matrix
   } deriving (Show,Eq)
 
 data ColorOpt = Two { low :: Colour Double
@@ -44,34 +61,44 @@ data ColorOpt = Two { low :: Colour Double
                 deriving (Show,Eq)
 
 data ColorVal = ColorVal
-  { lowVal :: {-# UNPACK #-} !Double
-  , mediumVal :: {-# UNPACK #-} !Double
-  , highVal :: {-# UNPACK #-} !Double
+  { lowVal :: Double
+  , mediumVal :: Double
+  , highVal :: Double
   } deriving (Show,Eq)
 
-data Pos = Horizontal | Vertical deriving (Show,Eq)
-data HPos = LeftTree | RightTree deriving (Show,Eq)
-data VPos = TopTree | BottomTree deriving (Show,Eq)
-data TradeOff = Quality | Performance deriving (Show,Eq)
+data Pos = Horizontal
+         | Vertical
+         deriving (Show,Eq)
+                  
+data HPos = LeftTree
+          | RightTree
+          deriving (Show,Eq)
+data VPos = TopTree
+          | BottomTree
+          deriving (Show,Eq)
+                   
+data TradeOff = Quality -- ^ 
+              | Performance -- ^ For large matrix (i.e > 60000 elements), using raw cairo api and unsafePerformIO. 
+              deriving (Show,Eq)
 
 data ClustOpt = ClustOpt
   { colorOpt :: ColorOpt
   , rowCluster :: Maybe (DisFunc,Linkage,HPos)
   , colCluster :: Maybe (DisFunc,Linkage,VPos)
-  } 
+  }
 
 data Para = Para
-  { clustOpt :: !ClustOpt
-  , colorVal :: !ColorVal
-  , matrixHeight :: {-# UNPACK #-} !Double
-  , matrixWidth :: {-# UNPACK #-} !Double
-  , rowTreeHeight :: {-# UNPACK #-} !Double
-  , rowTreeLineWidth :: {-# UNPACK #-} !Double
-  , colTreeHeight :: {-# UNPACK #-} !Double
-  , colTreeLineWidth :: {-# UNPACK #-} !Double
-  , rowFontSize :: {-# UNPACK #-} !Double
-  , colFontSize :: {-# UNPACK #-} !Double
-  , fontName :: !String
-  , colorBarPos :: !Pos
-  , tradeOff :: !TradeOff
-  } 
+  { clustOpt :: ClustOpt
+  , colorVal :: ColorVal
+  , matrixHeight :: Double
+  , matrixWidth :: Double
+  , rowTreeHeight :: Double
+  , rowTreeLineWidth :: Double
+  , colTreeHeight :: Double
+  , colTreeLineWidth :: Double
+  , rowFontSize :: Double
+  , colFontSize :: Double
+  , fontName :: String
+  , colorBarPos :: Pos
+  , tradeOff :: TradeOff
+  }
