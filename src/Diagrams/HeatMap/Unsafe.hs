@@ -22,10 +22,8 @@ import Diagrams.HeatMap.Impl
 import qualified Data.Vector.Unboxed as UV
 import Control.Monad
 import System.Directory
-import Data.Colour.RGBSpace
-import Data.Colour.SRGB.Linear
+import Diagrams.Attributes
 
--- matrix order
 plotMatrixCairo :: Para -> Matrix -> FilePath
 {-# NOINLINE plotMatrixCairo #-}
 plotMatrixCairo para m =
@@ -62,5 +60,4 @@ plotMatrixCairo para m =
           setSourceRGBA 0 0 0 0
           rectangle 0 0 mW mH
           fill
-      setRGB r g b = setSourceRGBA r g b 1
-      setColor co = uncurryRGB setRGB (toRGB co)
+      setColor = (\(r,g,b,a) -> setSourceRGBA r g b a) . colorToRGBA 
