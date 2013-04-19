@@ -29,7 +29,7 @@ plotHeatMap para dataset =
     let rowTreeLineW = rowTreeLineWidth para
         colTreeLineW = colTreeLineWidth para
         gapRatioForRowLabel = 0.02
-        groupBarRatio = 0.5 * (sqrt 5 - 1)
+        legendFS = legendFontSize para
         labelHash = case colLabels dataset of
             Nothing -> H.empty
             Just tVec ->
@@ -98,7 +98,7 @@ plotHeatMap para dataset =
             in (dia,rotate (Deg 180) rowTreeV)
         (colLabelD,colLabelV) =
             let gW = w
-                gH = groupBarRatio * gW
+                gH = 0.618 * gW
                 ali =
                     case colTreePos of
                         TopTree -> False
@@ -151,7 +151,7 @@ plotHeatMap para dataset =
                            TopTree -> tree
                            BottomTree -> transform reflectionY tree
         legends = let gW = w
-                      gH = groupBarRatio * gW
+                      gH = legendFS
                   in mkGroupLegend (colorBarPos para) gW gH (fontName para) labelHash
         beside' v a b = beside v b a
         heatPlot = beside' rowLabelV rowLabelD $
@@ -161,12 +161,12 @@ plotHeatMap para dataset =
         colorBar = plotColorBar para
     in case colorBarPos para of
         Horizontal ->
-            let sep' = groupBarRatio * w * 0.5
+            let sep' = legendFS * 0.5
                 gD = centerXY $ hcat' (CatOpts Cat sep' Proxy) $
                      map (\(r,t) -> rotate (Deg 90) $ alignR $ t ||| strutX (2*sep') ||| r) legends
             in (centerXY $ (heatPlot === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
-            let sep' = groupBarRatio * w * 0.5
+            let sep' = legendFS * 0.5
                 gD = centerXY $ vcat' (CatOpts Cat sep' Proxy) $
                      map (\(r,t) -> alignL $ r ||| strutX (2*sep') ||| t) legends
             in (centerXY (heatPlot ||| (gD # alignL # centerY === strutY (0.1 * matrixHeight para) === colorBar # alignL) # centerXY),newDataset)

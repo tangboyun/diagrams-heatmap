@@ -98,6 +98,7 @@ data Para = Para
   , colTreeLineWidth :: Double
   , rowFontSize :: Double
   , colFontSize :: Double
+  , legendFontSize :: Double
   , fontName :: String
   , colorBarPos :: Pos
   , tradeOff :: TradeOff

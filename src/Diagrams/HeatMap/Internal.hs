@@ -35,7 +35,8 @@ toTree lineW elemWidth dendro =
     let (path,wid) = first (D.dendrogramPath . fmap snd) $
                      D.fixedWidth elemWidth dendro
         dia = stroke path # lw lineW # lc black # centerXY ===
-              strutX wid
+              strutX wid ===
+              strutY (1e-2 * h)
         h = case dendro of
             Leaf _ -> 0
             Branch d _ _ -> d

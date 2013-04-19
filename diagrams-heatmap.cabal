@@ -19,7 +19,7 @@ library
   exposed-modules:     Diagrams.HeatMap
                        Diagrams.HeatMap.Type
                        Diagrams.HeatMap.Internal
-                       Diagrams.HeatMap.Util
+--                       Diagrams.HeatMap.Util
   
   other-modules:       Diagrams.HeatMap.Module
                        Diagrams.HeatMap.Impl
