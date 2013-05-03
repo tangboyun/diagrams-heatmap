@@ -40,8 +40,8 @@ data MatrixOrder = RowMajor
 type DisFunc = UV.Vector Double -> UV.Vector Double -> Double
 
 data Matrix = Matrix
-  { nRow :: Int
-  , nCol :: Int
+  { nRow :: {-# UNPACK #-} !Int
+  , nCol :: {-# UNPACK #-} !Int
   , order :: MatrixOrder
   , dat :: UV.Vector Double
   } deriving (Show,Eq)

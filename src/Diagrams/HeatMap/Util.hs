@@ -25,9 +25,6 @@ import qualified Data.Vector.Unboxed as UV
 import           Diagrams.HeatMap.Impl
 import           Diagrams.HeatMap.Type
 
-makeDefualtPara :: ClustOpt -> Dataset -> Para
-makeDefualtPara opt dataset = undefined
-
 renderDataset :: Dataset -> TL.Text
 renderDataset dataset = 
     toLazyText $ go (tVecToB (fromText sep) 0) 0
