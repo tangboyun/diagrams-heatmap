@@ -108,18 +108,19 @@ plotColorBar para =
         Three _ _ _ ->   
             let rhs = [vMean,vMean+step..vMax]
                 lhs = reverse [vMean,vMean-step..vMin]
+                ln = fromIntegral $ length lhs
+                rn = fromIntegral $ length rhs
             in case colorBarPos para of
                 Horizontal ->
                     let ds = hcat (toD lhs) # alignBR <>
                              hcat (toD rhs) # alignBL
-                        bar = ds === 
-                              strutY (0.3*h)
+                        bar = ds === strutY (0.3*h)
                         toT t = text t
                                 # font (fontName para)
                                 # fontSize (0.95*h) <> strutY h      
-                    in beside' (r2 (mW,-h)) (strutY (0.3*h) === toT tMax) $
-                       beside' (r2 (-mW,-h)) (strutY (0.3*h) === toT tMin) $
-                       beside' unit_Y (toT tMean) (bar # centerY)
+                    in beside' (r2 (mW*rn,-0.5*h)) (alignT $ strutY (0.3*h) === toT tMax) $
+                       beside' (r2 (-mW*ln,-0.5*h)) (alignT $ strutY (0.3*h) === toT tMin) $
+                       beside' unit_Y (toT tMean) bar
                 Vertical ->
                     let ds = rotate (Deg 90) $
                              hcat (toD lhs) # alignBR <>
@@ -131,21 +132,20 @@ plotColorBar para =
                                 # fontSize (0.95*h) <> strutY h <>
                                 rect (fromIntegral (length t) * h * 0.6) h
                                 # lcA transparent # alignL
-                    in beside' (r2 (h,mW)) (strutX (0.3*h) ||| toT tMax) $
-                       beside' (r2 (h,-mW)) (strutX (0.3*h) ||| toT tMin) $
-                       beside' unitX (toT tMean) (bar # centerX)
+                    in beside' (r2 (0.5*h,mW*rn)) (alignL $ strutX (0.3*h) ||| toT tMax) $
+                       beside' (r2 (0.5*h,-mW*ln)) (alignL $ strutX (0.3*h) ||| toT tMin) $
+                       beside' unitX (toT tMean) bar 
   where
     beside' v b a = beside v a b
     n = 200 :: Int
     ratio = 0.5
-    barHWRatio = 0.05
     mW = case colorBarPos para of
         Horizontal -> ratio * matrixWidth para
         Vertical -> ratio * matrixHeight para
     w = case colorBarPos para of
         Horizontal -> ratio * matrixWidth para / fromIntegral n
         Vertical -> ratio * matrixHeight para / fromIntegral n
-    h = barHWRatio * w * fromIntegral n
+    h = legendFontSize para
     color = colorOpt . clustOpt $ para
     ColorVal vMin vMean vMax = colorVal para
 
