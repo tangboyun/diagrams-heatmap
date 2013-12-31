@@ -199,7 +199,7 @@ mkLabels :: (Backend b R2,Renderable (Path R2) b,Renderable Text b)
          -> Maybe (V.Vector T.Text)
          -> [Diagram b R2]
 mkLabels isLeft sizeFont maxSize fName textVec =
-    let wVsH = 0.65
+    let wVsH = 0.7
         size = if sizeFont > maxSize
                then maxSize
                else sizeFont
@@ -232,7 +232,7 @@ mkGroupLegend :: (Renderable (Path R2) b,Renderable Text b,Backend b R2)
               -> HashMap T.Text (Colour Double)
               -> [(Diagram b R2,Diagram b R2)]
 mkGroupLegend p w h f hash =
-    let wVsH = 0.65
+    let wVsH = 0.7
     in map (\(t,c) ->
              let r = centerX $ rect w h
                      # lcA transparent

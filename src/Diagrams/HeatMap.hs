@@ -14,6 +14,8 @@
 module Diagrams.HeatMap where
 
 
+import           Control.Lens (set)
+import           Data.Default.Class
 import qualified Data.HashMap.Strict as H
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
@@ -159,15 +161,15 @@ plotHeatMap para dataset =
                    beside' colTreeV colTree $
                    beside' rowTreeV rowTree matrixD
         colorBar = plotColorBar para
+        sep' = legendFS * 0.5
+        catOptSetteing =  set sep sep' $ set catMethod Cat def
     in case colorBarPos para of
         Horizontal ->
-            let sep' = legendFS * 0.5
-                gD = centerXY $ hcat' (CatOpts Cat sep' Proxy) $
+            let gD = centerXY $ rotate (Deg $ negate 90) $ hcat' catOptSetteing $
                      map (\(r,t) -> rotate (Deg 90) $ alignR $ t ||| strutX (2*sep') ||| r) legends
             in (centerXY $ (heatPlot === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
-            let sep' = legendFS * 0.5
-                gD = centerXY $ vcat' (CatOpts Cat sep' Proxy) $
+            let gD = centerXY $ vcat' catOptSetteing $
                      map (\(r,t) -> alignL $ r ||| strutX (2*sep') ||| t) legends
             in (centerXY (heatPlot ||| (gD # alignL # centerY === strutY (0.1 * matrixHeight para) === colorBar # alignL) # centerXY),newDataset)
 
