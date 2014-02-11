@@ -26,19 +26,19 @@ library
                        Diagrams.HeatMap.Unsafe
                        
   build-depends:       base,
-                       cairo,
+                       cairo >= 0.12.5,
                        colour,
-                       diagrams-core >= 1.0.0.0,
-                       diagrams-lib >= 1.0.0.0,
+                       diagrams >= 1.0.0.0,
+                       diagrams-lib,
                        directory,
                        hierarchical-clustering,
                        hierarchical-clustering-diagrams,
                        split,
 --                       statistics,
-                       text,
+                       text >= 0.11,
                        vector,
                        unordered-containers,
-                       lens >= 3.10.0.0,
+                       lens >= 3.8 && < 4,
                        data-default-class
                        
   ghc-options:         -Wall
