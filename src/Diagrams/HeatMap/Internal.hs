@@ -96,7 +96,7 @@ plotColorBar para =
                     in beside' (r2 (mW,-h)) (strutY (0.3*h) === toT tMax) $
                        beside' (r2 (-mW,-h)) (strutY (0.3*h) === toT tMin) (bar # centerY)
                 Vertical ->
-                    let bar = (rotate (Deg 90) $ hcat ds) # centerXY |||
+                    let bar = (rotate (90 @@ deg) $ hcat ds) # centerXY |||
                               strutX (0.3*h)
                         toT t = alignedText 0 0.5 t
                                 # font (fontName para)
@@ -122,7 +122,7 @@ plotColorBar para =
                        beside' (r2 (-mW*ln,-0.5*h)) (alignT $ strutY (0.3*h) === toT tMin) $
                        beside' unit_Y (toT tMean) bar
                 Vertical ->
-                    let ds = rotate (Deg 90) $
+                    let ds = rotate (90 @@ deg) $
                              hcat (toD lhs) # alignBR <>
                              hcat (toD rhs) # alignBL
                         bar = ds |||

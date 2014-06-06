@@ -92,12 +92,12 @@ plotHeatMap para dataset =
                     case rowTreePos of
                         LeftTree -> True
                         RightTree -> False
-                dia = beside (rotate (Deg 180) rowTreeV)
+                dia = beside (rotate (180 @@ deg) rowTreeV)
                       (strutX $ gapRatioForRowLabel * matrixWidth para) $
                       centerY $ vcat $
                       mkLabels ali (rowFontSize para) h
                       (fontName para) (rowNames newDataset)
-            in (dia,rotate (Deg 180) rowTreeV)
+            in (dia,rotate (180 @@ deg) rowTreeV)
         (colLabelD,colLabelV) =
             let gW = w
                 gH = 0.618 * gW
@@ -114,7 +114,7 @@ plotHeatMap para dataset =
                                centerY $
                                beside colTreeV
                                (strutY gH) $
-                               beside (rotate (Deg 180) colTreeV)
+                               beside (rotate (180 @@ deg) colTreeV)
                                (strutY (2*gH)) $
                                rect gW gH
                                # lcA transparent
@@ -122,8 +122,8 @@ plotHeatMap para dataset =
                              ) . (labelHash H.!)) $ V.toList lVec
                 dia = let ds = map (
                                 case colTreePos of
-                                    TopTree -> rotate (Deg 90)
-                                    BottomTree -> rotate (Deg 90)) $
+                                    TopTree -> rotate (90 @@ deg)
+                                    BottomTree -> rotate (90 @@ deg)) $
                                mkLabels ali (colFontSize para) w
                                (fontName para) (colNames newDataset)
                       in case colLabels newDataset of
@@ -135,16 +135,16 @@ plotHeatMap para dataset =
                                      case colTreePos of
                                           TopTree -> strutY (2*gH) === hcat ds
                                           BottomTree -> hcat ds === strutY (2*gH)
-            in (dia,rotate (Deg 180) colTreeV)
+            in (dia,rotate (180 @@ deg) colTreeV)
         rowTree = if isNothing rowDendro
                   then mempty
                   else let (dia,treeH) = toTree rowTreeLineW h  $ fromJust rowDendro
                            tree = scaleY (rowTreeHeight para / treeH) dia
                        in case rowTreePos of
                            LeftTree ->
-                               transform (rotation $ Deg 90) $
+                               transform (rotation $ 90 @@ deg) $
                                transform reflectionX tree
-                           RightTree -> transform (rotation $ Deg $ -90) tree
+                           RightTree -> transform (rotation $ (-90) @@ deg) tree
         colTree = if isNothing colDendro
                   then mempty
                   else let (dia,treeH) = toTree colTreeLineW w $ fromJust colDendro
@@ -165,8 +165,8 @@ plotHeatMap para dataset =
         catOptSetteing =  set sep sep' $ set catMethod Cat def
     in case colorBarPos para of
         Horizontal ->
-            let gD = centerXY $ rotate (Deg $ negate 90) $ hcat' catOptSetteing $
-                     map (\(r,t) -> rotate (Deg 90) $ alignR $ t ||| strutX (2*sep') ||| r) legends
+            let gD = centerXY $ rotate ((-90) @@ deg) $ hcat' catOptSetteing $
+                     map (\(r,t) -> rotate (90 @@ deg) $ alignR $ t ||| strutX (2*sep') ||| r) legends
             in (centerXY $ (heatPlot === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
             let gD = centerXY $ vcat' catOptSetteing $
