@@ -1,28 +1,28 @@
 {-# LANGUAGE BangPatterns #-}
 -----------------------------------------------------------------------------
 -- |
--- Module : 
+-- Module :
 -- Copyright : (c) 2013 Boyun Tang
 -- License : BSD-style
 -- Maintainer : tangboyun@hotmail.com
 -- Stability : experimental
 -- Portability : ghc
 --
--- 
+--
 --
 -----------------------------------------------------------------------------
 
 module Diagrams.HeatMap.Unsafe where
 
-import Graphics.Rendering.Cairo hiding (Matrix)
-import System.IO
-import System.IO.Unsafe
-import Diagrams.HeatMap.Type
-import Diagrams.HeatMap.Impl
-import qualified Data.Vector.Unboxed as UV
-import Control.Monad
-import System.Directory
-import Diagrams.Attributes
+import           Control.Monad
+import qualified Data.Vector.Unboxed      as UV
+import           Diagrams.Attributes
+import           Diagrams.HeatMap.Impl
+import           Diagrams.HeatMap.Type
+import           Graphics.Rendering.Cairo hiding (Matrix)
+import           System.Directory
+import           System.IO
+import           System.IO.Unsafe
 
 plotMatrixCairo :: Para -> Matrix -> FilePath
 {-# NOINLINE plotMatrixCairo #-}
@@ -55,9 +55,9 @@ plotMatrixCairo para m =
       mH = matrixHeight para
       i = nRow m
       j = nCol m
-      myRect x y = rectangle x y w h
+      myRect x1 y1 = rectangle x1 y1 w h
       clearSurface = do
           setSourceRGBA 0 0 0 0
           rectangle 0 0 mW mH
           fill
-      setColor = (\(r,g,b,a) -> setSourceRGBA r g b a) . colorToRGBA 
+      setColor = (\(r,g,b,a) -> setSourceRGBA r g b a) . colorToSRGBA

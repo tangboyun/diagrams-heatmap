@@ -19,22 +19,19 @@ library
   exposed-modules:     Diagrams.HeatMap
                        Diagrams.HeatMap.Type
                        Diagrams.HeatMap.Internal
---                       Diagrams.HeatMap.Util
   
   other-modules:       Diagrams.HeatMap.Module
                        Diagrams.HeatMap.Impl
                        Diagrams.HeatMap.Unsafe
+                       Diagrams.HeatMap.Dendrogram
                        
   build-depends:       base,
                        cairo ,
                        colour,
-                       diagrams ,
-                       diagrams-lib,
+                       diagrams-lib >= 1.2 ,
                        directory,
                        hierarchical-clustering,
-                       hierarchical-clustering-diagrams,
                        split,
---                       statistics,
                        text ,
                        vector,
                        unordered-containers,
@@ -42,3 +39,29 @@ library
                        data-default-class
                        
   ghc-options:         -Wall
+
+executable colorBar
+  main-is:             colorBar.hs
+  build-depends:       base >=4.7 && < 5,
+                       diagrams-cairo,
+                       diagrams-heatmap,
+                       diagrams-lib,
+                       colour,
+                       IntervalMap,
+                       palette
+
+  hs-source-dirs:      tests
+  default-language:    Haskell2010
+
+executable drawPath
+  main-is:             drawPath.hs
+  build-depends:       base >=4.7 && < 5,
+                       diagrams-cairo,
+                       diagrams-heatmap,
+                       diagrams-lib,
+                       colour,
+                       IntervalMap,
+                       palette,lens
+
+  hs-source-dirs:      tests
+  default-language:    Haskell2010

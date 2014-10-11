@@ -1,13 +1,13 @@
 -----------------------------------------------------------------------------
 -- |
--- Module : 
+-- Module :
 -- Copyright : (c) 2013 Boyun Tang
 -- License : BSD-style
 -- Maintainer : tangboyun@hotmail.com
 -- Stability : experimental
 -- Portability : ghc
 --
--- 
+--
 --
 -----------------------------------------------------------------------------
 
@@ -29,18 +29,18 @@ module Diagrams.HeatMap.Module
        , module Control.Arrow
        ) where
 
-import Data.Clustering.Hierarchical
-import Data.Colour.Names
-import Data.Colour.RGBSpace
-import Data.Colour.RGBSpace.HSL
-import Data.Colour.SRGB
-import Data.Function
-import Data.List
-import Data.List.Split
-import Data.Maybe
-import Diagrams.Prelude hiding (trace,union)
-import Diagrams.TwoD.Image
-import Diagrams.TwoD.Text
-import Text.Printf
-import Data.Foldable (toList)
-import Control.Arrow hiding ((|||))
+import           Control.Arrow                hiding ((|||))
+import           Data.Clustering.Hierarchical
+import           Data.Colour.Names
+import           Data.Colour.RGBSpace
+import           Data.Colour.RGBSpace.HSL
+import           Data.Colour.SRGB
+import           Data.Foldable                (toList)
+import           Data.Function
+import           Data.List
+import           Data.List.Split
+import           Data.Maybe
+import           Diagrams.Prelude             hiding (trace)
+import           Diagrams.TwoD.Image
+import           Diagrams.TwoD.Text
+import           Text.Printf

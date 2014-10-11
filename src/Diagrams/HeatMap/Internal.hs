@@ -19,7 +19,7 @@ import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as UV
-import qualified Diagrams.Dendrogram as D
+import           Diagrams.HeatMap.Dendrogram 
 import           Diagrams.HeatMap.Impl
 import           Diagrams.HeatMap.Module
 import           Diagrams.HeatMap.Type
@@ -32,9 +32,9 @@ toTree :: (Renderable (Path R2) b,Backend b R2)
        -> Dendrogram a
        -> (Diagram b R2,Double)
 toTree lineW elemWidth dendro =
-    let (path,wid) = first (D.dendrogramPath . fmap snd) $
-                     D.fixedWidth elemWidth dendro
-        dia = stroke path # lw lineW # lc black # centerXY ===
+    let (path,wid) = first (dendrogramPath . fmap snd) $
+                     fixedWidth elemWidth dendro
+        dia = stroke path # lwG lineW # lc black # centerXY ===
               strutX wid ===
               strutY (1e-2 * h)
         h = case dendro of
@@ -70,86 +70,86 @@ clustering cluOpt m =
         fmap colFunc . colCluster) cluOpt
        
 
--- |
-plotColorBar :: (Renderable (Path R2) b, Renderable Text b,Backend b R2)
-         => Para -> Diagram b R2
-plotColorBar para =
-    let step = (vMax - vMin) / (fromIntegral n)
-        toD = map ((\c ->
-                     rect w h # lcA transparent
-                     # fc c
-                   ) . chooseColor para)
-        toText = printf "%.1f"
+mkColorBar :: (Renderable (Path R2) b, Renderable Text b,Backend b R2)
+           => (Double,Double)
+           -> ColorOpt
+           -> ColorVal
+           -> Pos
+           -> String
+           -> Diagram b R2
+mkColorBar (w,h) color (ColorVal vMin vMean vMax) pos fName =
+    let toText = printf "%.1f"
         tMin = toText vMin
         tMax = toText vMax
         tMean = toText vMean
+        fontH = 0.5 * h
+        toColorbar sts = rect w h # fillTexture (mkLinearGradient sts ((-0.5*w) ^& 0) (0.5*w ^& h) GradPad)
     in case color of
-        Two _ _ ->
-            let ds = toD [vMin,vMin+step..vMax]
-            in case colorBarPos para of
+        Two lC hC ->
+            let stops = mkStops [(lC,0,1),(hC,1,1)]
+            in case pos of
                 Horizontal ->
-                    let bar = hcat ds # centerXY ===
-                              strutY (0.3*h)
+                    let bar = toColorbar stops 
                         toT t = text t
-                                # font (fontName para)
-                                # fontSize (0.95*h) <> strutY h      
-                    in beside' (r2 (mW,-h)) (strutY (0.3*h) === toT tMax) $
-                       beside' (r2 (-mW,-h)) (strutY (0.3*h) === toT tMin) (bar # centerY)
+                                # font fName
+                                # fontSizeL (0.95*fontH) <> strutY fontH      
+                    in bar <>
+                       position [ (p2 (-0.5*w,-0.5*h), alignT $ strutY (0.25*h) === toT tMin)
+                                , (p2 (0.5*w,-0.5*h),  alignT $ strutY (0.25*h) === toT tMax)
+                                ] 
                 Vertical ->
-                    let bar = (rotate (90 @@ deg) $ hcat ds) # centerXY |||
-                              strutX (0.3*h)
+                    let bar = (rotate (90 @@ deg) $ toColorbar stops) # centerXY
                         toT t = alignedText 0 0.5 t
-                                # font (fontName para)
-                                # fontSize (0.95*h) <> strutY h <>
-                                rect (fromIntegral (length t) * h * 0.6) h
+                                # font fName
+                                # fontSizeL (0.95*fontH) <> 
+                                rect (fromIntegral (length t) * fontH * 0.6) fontH
                                 # lcA transparent # alignL
-                    in beside' (r2 (h,mW)) (strutX (0.3*h) ||| toT tMax) $
-                       beside' (r2 (h,-mW)) (strutX (0.3*h) ||| toT tMin) (bar # centerX)
-        Three _ _ _ ->   
-            let rhs = [vMean,vMean+step..vMax]
-                lhs = reverse [vMean,vMean-step..vMin]
-                ln = fromIntegral $ length lhs
-                rn = fromIntegral $ length rhs
-            in case colorBarPos para of
+                    in bar <>
+                       position [ (p2 (0.5*h,0.5*w),  alignL $ strutX (0.25*h) ||| toT tMax)
+                                , (p2 (0.5*h,-0.5*w), alignL $ strutX (0.25*h) ||| toT tMin)
+                                ] 
+        Three lC mC hC ->   
+            let stops = mkStops [(lC,0,1),(mC,r,1),(hC,1,1)]
+                r = (vMean-vMin)/(vMax-vMin)
+            in case pos of
                 Horizontal ->
-                    let ds = hcat (toD lhs) # alignBR <>
-                             hcat (toD rhs) # alignBL
-                        bar = ds === strutY (0.3*h)
+                    let bar = toColorbar stops
                         toT t = text t
-                                # font (fontName para)
-                                # fontSize (0.95*h) <> strutY h      
-                    in beside' (r2 (mW*rn,-0.5*h)) (alignT $ strutY (0.3*h) === toT tMax) $
-                       beside' (r2 (-mW*ln,-0.5*h)) (alignT $ strutY (0.3*h) === toT tMin) $
-                       beside' unit_Y (toT tMean) bar
+                                # font fName
+                                # fontSizeL (0.95*fontH) <> strutY fontH      
+                    in bar <>
+                       position [ (p2 (-0.5*w,-0.5*h),    alignT $ strutY (0.25*h) === toT tMin)
+                                , (p2 (w*(r-0.5),-0.5*h), alignT $ strutY (0.25*h) === toT tMean)
+                                , (p2 (0.5*w,-0.5*h),     alignT $ strutY (0.25*h) === toT tMax)
+                                ] 
                 Vertical ->
-                    let ds = rotate (90 @@ deg) $
-                             hcat (toD lhs) # alignBR <>
-                             hcat (toD rhs) # alignBL
-                        bar = ds |||
-                              strutX (0.3*h)
+                    let bar = rotate (90 @@ deg) $ toColorbar stops
                         toT t = alignedText 0 0.5 t
-                                # font (fontName para)
-                                # fontSize (0.95*h) <> strutY h <>
-                                rect (fromIntegral (length t) * h * 0.6) h
+                                # font fName
+                                # fontSizeL (0.95*fontH) <> 
+                                rect (fromIntegral (length t) * fontH * 0.6) fontH
                                 # lcA transparent # alignL
-                    in beside' (r2 (0.5*h,mW*rn)) (alignL $ strutX (0.3*h) ||| toT tMax) $
-                       beside' (r2 (0.5*h,-mW*ln)) (alignL $ strutX (0.3*h) ||| toT tMin) $
-                       beside' unitX (toT tMean) bar 
+                    in bar <>
+                       position [ (p2 (0.5*h,0.5*w), alignL $ strutX (0.25*h) ||| toT tMax)
+                                , (p2 (0.5*h,(r-0.5)*w), alignL $ strutX (0.25*h) ||| toT tMean)
+                                , (p2 (0.5*h,-0.5*w), alignL $ strutX (0.25*h) ||| toT tMin)
+                                ] 
+
+-- |
+plotColorBar :: (Renderable (Path R2) b, Renderable Text b,Backend b R2)
+         => Para -> Diagram b R2
+plotColorBar para = mkColorBar (w,h) color (colorVal para) pos fName
   where
-    beside' v b a = beside v a b
-    n = 200 :: Int
     ratio = 0.5
-    mW = case colorBarPos para of
-        Horizontal -> ratio * matrixWidth para
-        Vertical -> ratio * matrixHeight para
+    pos = colorBarPos para
+    fName = fontName para
     w = case colorBarPos para of
-        Horizontal -> ratio * matrixWidth para / fromIntegral n
-        Vertical -> ratio * matrixHeight para / fromIntegral n
+        Horizontal -> ratio * matrixWidth para
+        Vertical -> ratio * matrixHeight para 
     h = legendFontSize para
     color = colorOpt . clustOpt $ para
-    ColorVal vMin vMean vMax = colorVal para
 
-plotMatrix :: (Renderable (Path R2) b, Renderable Image b,Renderable Text b,
+plotMatrix :: (Renderable (Path R2) b, Renderable (DImage External) b,Renderable Text b,
              Backend b R2)
            => Para -> Matrix -> Diagram b R2
 plotMatrix para m =
@@ -157,11 +157,16 @@ plotMatrix para m =
         Performance -> plotMatrixPerformance para m
         Quality -> plotMatrixQuality para m
         
-plotMatrixPerformance :: (Renderable (Path R2) b, Renderable Image b,
+plotMatrixPerformance :: (Renderable (Path R2) b, Renderable (DImage External) b,
              Backend b R2) =>
             Para -> Matrix -> Diagram b R2
 plotMatrixPerformance para m =
-    image (plotMatrixCairo para m) (matrixWidth para) (matrixHeight para)
+    image $
+    DImage
+    (ImageRef (plotMatrixCairo para m))
+    (round $ matrixWidth para)
+    (round $ matrixHeight para)
+    mempty
     
 
 plotMatrixQuality :: (Renderable (Path R2) b, Renderable Text b,
@@ -210,14 +215,14 @@ mkLabels isLeft sizeFont maxSize fName textVec =
                    if isLeft
                    then alignedText 0 0.5 str
                         # font fName
-                        # fontSize (0.95 * size) <>
+                        # fontSizeL (0.95 * size) <>
                         strutY size <>
                         rect ((fromIntegral $ length str) * size * wVsH) maxSize
                         # lcA transparent
                         # alignL
                    else alignedText 1 0.5 str
                         # font fName
-                        # fontSize (0.95 * size) <>
+                        # fontSizeL (0.95 * size) <>
                         strutY size <>
                         rect ((fromIntegral $ length str) * size * wVsH) maxSize
                         # lcA transparent
@@ -242,7 +247,7 @@ mkGroupLegend p w h f hash =
                          centerXY $
                          alignedText 1 0.5 (T.unpack t)
                          # font f
-                         # fontSize (0.95 * h) <> strutY h <>
+                         # fontSizeL (0.95 * h) <> strutY h <>
                          rect (fromIntegral (T.length t) * h * wVsH) h
                          # lcA transparent
                          # alignR
@@ -250,7 +255,7 @@ mkGroupLegend p w h f hash =
                          centerXY $
                          alignedText 0 0.5 (T.unpack t)
                          # font f
-                         # fontSize (0.95 * h) <> strutY h <>
+                         # fontSizeL (0.95 * h) <> strutY h <>
                          rect (fromIntegral (T.length t) * h * wVsH) h
                          # lcA transparent
                          # alignL

@@ -25,7 +25,7 @@ import           Diagrams.HeatMap.Module
 import           Diagrams.HeatMap.Type
 
 
-plotHeatMap :: (Renderable (Path R2) b,Renderable Text b,Renderable Image b,Backend b R2)
+plotHeatMap :: (Renderable (Path R2) b,Renderable Text b,Renderable (DImage External) b,Backend b R2)
           => Para -> Dataset -> (Diagram b R2,Dataset)
 plotHeatMap para dataset =
     let rowTreeLineW = rowTreeLineWidth para
