@@ -36,6 +36,8 @@ library
                        vector,
                        unordered-containers,
                        lens,
+                       IntervalMap,
+                       palette,
                        data-default-class
                        
   ghc-options:         -Wall
@@ -53,15 +55,3 @@ executable colorBar
   hs-source-dirs:      tests
   default-language:    Haskell2010
 
-executable drawPath
-  main-is:             drawPath.hs
-  build-depends:       base >=4.7 && < 5,
-                       diagrams-cairo,
-                       diagrams-heatmap,
-                       diagrams-lib,
-                       colour,
-                       IntervalMap,
-                       palette,lens
-
-  hs-source-dirs:      tests
-  default-language:    Haskell2010

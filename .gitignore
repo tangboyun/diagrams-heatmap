@@ -13,3 +13,5 @@ cabal-dev
 .virthualenv
 /Setup_flymake.hs
 /example/example
+/.cabal-sandbox/
+/cabal.sandbox.config
