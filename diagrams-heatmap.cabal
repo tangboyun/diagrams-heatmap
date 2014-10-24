@@ -55,3 +55,20 @@ executable colorBar
   hs-source-dirs:      tests
   default-language:    Haskell2010
 
+executable mkHeatmap
+  main-is:             mkHeatmap.hs
+  build-depends:       base,
+                       text,
+                       filepath,
+                       diagrams-cairo,
+                       diagrams-heatmap,
+                       diagrams-lib,
+                       colour,
+                       unordered-containers,
+                       statistics,
+                       vector,
+                       palette
+
+  hs-source-dirs:      tests
+  default-language:    Haskell2010
+

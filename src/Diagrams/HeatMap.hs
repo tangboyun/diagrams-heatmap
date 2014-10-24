@@ -12,8 +12,6 @@
 --
 -----------------------------------------------------------------------------
 module Diagrams.HeatMap where
-
-
 import           Control.Lens (set)
 import           Data.Default.Class
 import qualified Data.HashMap.Strict as H
@@ -23,7 +21,6 @@ import           Diagrams.HeatMap.Impl
 import           Diagrams.HeatMap.Internal
 import           Diagrams.HeatMap.Module
 import           Diagrams.HeatMap.Type
-
 
 plotHeatMap :: (Renderable (Path R2) b,Renderable Text b,Renderable (DImage External) b,Backend b R2)
           => Para -> Dataset -> (Diagram b R2,Dataset)
@@ -167,7 +164,7 @@ plotHeatMap para dataset =
         Horizontal ->
             let gD = centerXY $ rotate ((-90) @@ deg) $ hcat' catOptSetteing $
                      map (\(r,t) -> rotate (90 @@ deg) $ alignR $ t ||| strutX (2*sep') ||| r) legends
-            in (centerXY $ (heatPlot === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
+            in (centerXY $ (heatPlot === strutY (2*sep') === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
             let gD = centerXY $ vcat' catOptSetteing $
                      map (\(r,t) -> alignL $ r ||| strutX (2*sep') ||| t) legends
