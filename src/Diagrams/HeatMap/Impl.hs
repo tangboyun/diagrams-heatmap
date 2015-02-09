@@ -27,8 +27,13 @@ atUV = (UV.!)
 
 chooseColor :: Para -> Double -> Colour Double
 {-# INLINE chooseColor #-}
-chooseColor para v =
+chooseColor para v' =
     let ColorVal vMin vMean vMax = colorVal para
+    	v = if v' < vMin
+	    then vMin
+	    else if v' > vMax
+	         then vMax
+		 else v'
     in case colorOpt . clustOpt $ para of
         Two lC hC -> blend ((v-vMin)/(vMax-vMin)) hC lC
         Three lC mC hC ->
