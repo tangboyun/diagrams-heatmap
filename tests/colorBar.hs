@@ -32,6 +32,6 @@ color2 = let cSet = brewerSet Blues 9
 main :: IO ()
 main = do
     fp:_ <- getArgs
-    renderCairo fp (Width 100) $ pad 1.25 $
+    renderCairo fp (mkWidth 100) $ pad 1.25 $
         mkColorBar (20,2) color2 (ColorVal 5 8 15) Vertical "Arail"
 

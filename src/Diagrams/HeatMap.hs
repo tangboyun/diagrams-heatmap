@@ -12,7 +12,6 @@
 --
 -----------------------------------------------------------------------------
 module Diagrams.HeatMap where
-import           Control.Lens (set)
 import           Data.Default.Class
 import qualified Data.HashMap.Strict as H
 import qualified Data.Vector as V
@@ -22,13 +21,13 @@ import           Diagrams.HeatMap.Internal
 import           Diagrams.HeatMap.Module
 import           Diagrams.HeatMap.Type
 
-plotHeatMap :: (Renderable (Path R2) b,Renderable Text b,Renderable (DImage External) b,Backend b R2)
-          => Para -> Dataset -> (Diagram b R2,Dataset)
-plotHeatMap para dataset =
-    let rowTreeLineW = rowTreeLineWidth para
-        colTreeLineW = colTreeLineWidth para
+plotHeatMap :: (Renderable (Path V2 Double) b,Renderable (Text Double) b,Renderable (DImage Double External) b,Backend b V2 Double)
+          => Para -> Dataset -> (QDiagram b V2 Double Any,Dataset)
+plotHeatMap p dataset =
+    let rowTreeLineW = rowTreeLineWidth p
+        colTreeLineW = colTreeLineWidth p
         gapRatioForRowLabel = 0.02
-        legendFS = legendFontSize para
+        legendFS = legendFontSize p
         labelHash = case colLabels dataset of
             Nothing -> H.empty
             Just tVec ->
@@ -45,9 +44,9 @@ plotHeatMap para dataset =
         matrix = datM dataset
         i = nRow matrix
         j = nCol matrix
-        w = matrixWidth para / fromIntegral j
-        h = matrixHeight para / fromIntegral i
-        (rowDendro,colDendro) = clustering (clustOpt para) (datM dataset)
+        w = matrixWidth p / fromIntegral j
+        h = matrixHeight p / fromIntegral i
+        (rowDendro,colDendro) = clustering (clustOpt p) (datM dataset)
         rowIdxVec = fromMaybe (V.enumFromN 0 i) $ fmap (V.fromList . toList) $ rowDendro
         colIdxVec = fromMaybe (V.enumFromN 0 j) $ fmap (V.fromList . toList) $ colDendro
         newMatrix = let v = case order matrix of
@@ -72,28 +71,28 @@ plotHeatMap para dataset =
                               , datM = newMatrix
                               }
         (rowTreePos,rowTreeV) =
-            case rowCluster $ clustOpt para of
+            case rowCluster $ clustOpt p of
                 Nothing -> (LeftTree,unit_X)
-                Just (_,_,p) -> case p of
+                Just (_,_,posi) -> case posi of
                     LeftTree -> (LeftTree,unit_X)
                     RightTree -> (RightTree,unitX)
         (colTreePos,colTreeV) =
-            case colCluster $ clustOpt para of
+            case colCluster $ clustOpt p of
                 Nothing -> (TopTree,unitY)
-                Just (_,_,p) -> case p of
+                Just (_,_,posi) -> case posi of
                     TopTree -> (TopTree,unitY)
                     BottomTree -> (BottomTree,unit_Y)
-        matrixD = plotMatrix para newMatrix
+        matrixD = plotMatrix p newMatrix
         (rowLabelD,rowLabelV) =
             let ali =
                     case rowTreePos of
                         LeftTree -> True
                         RightTree -> False
                 dia = beside (rotate (180 @@ deg) rowTreeV)
-                      (strutX $ gapRatioForRowLabel * matrixWidth para) $
+                      (strutX $ gapRatioForRowLabel * matrixWidth p) $
                       centerY $ vcat $
-                      mkLabels ali (rowFontSize para) h
-                      (fontName para) (rowNames newDataset)
+                      mkLabels ali (rowFontSize p) h
+                      (fontName p) (rowNames newDataset)
             in (dia,rotate (180 @@ deg) rowTreeV)
         (colLabelD,colLabelV) =
             let gW = w
@@ -121,8 +120,8 @@ plotHeatMap para dataset =
                                 case colTreePos of
                                     TopTree -> rotate (90 @@ deg)
                                     BottomTree -> rotate (90 @@ deg)) $
-                               mkLabels ali (colFontSize para) w
-                               (fontName para) (colNames newDataset)
+                               mkLabels ali (colFontSize p) w
+                               (fontName p) (colNames newDataset)
                       in case colLabels newDataset of
                           Just _ ->
                               centerXY $ hcat $
@@ -136,7 +135,7 @@ plotHeatMap para dataset =
         rowTree = if isNothing rowDendro
                   then mempty
                   else let (dia,treeH) = toTree rowTreeLineW h  $ fromJust rowDendro
-                           tree = scaleY (rowTreeHeight para / treeH) dia
+                           tree = scaleY (rowTreeHeight p / treeH) dia
                        in case rowTreePos of
                            LeftTree ->
                                transform (rotation $ 90 @@ deg) $
@@ -145,29 +144,29 @@ plotHeatMap para dataset =
         colTree = if isNothing colDendro
                   then mempty
                   else let (dia,treeH) = toTree colTreeLineW w $ fromJust colDendro
-                           tree = scaleY (colTreeHeight para / treeH) dia
+                           tree = scaleY (colTreeHeight p / treeH) dia
                        in case colTreePos of
                            TopTree -> tree
                            BottomTree -> transform reflectionY tree
         legends = let gW = w
                       gH = legendFS
-                  in mkGroupLegend (colorBarPos para) gW gH (fontName para) labelHash
+                  in mkGroupLegend (colorBarPos p) gW gH (fontName p) labelHash
         beside' v a b = beside v b a
         heatPlot = beside' rowLabelV rowLabelD $
                    beside' colLabelV colLabelD $
                    beside' colTreeV colTree $
                    beside' rowTreeV rowTree matrixD
-        colorBar = plotColorBar para
+        colorBar = plotColorBar p
         sep' = legendFS * 0.5
         catOptSetteing =  set sep sep' $ set catMethod Cat def
-    in case colorBarPos para of
+    in case colorBarPos p of
         Horizontal ->
             let gD = centerXY $ rotate ((-90) @@ deg) $ hcat' catOptSetteing $
                      map (\(r,t) -> rotate (90 @@ deg) $ alignR $ t ||| strutX (2*sep') ||| r) legends
-            in (centerXY $ (heatPlot === strutY (2*sep') === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth para) ||| colorBar # alignT) # centerXY),newDataset)
+            in (centerXY $ (heatPlot === strutY (2*sep') === (gD # alignT # centerX ||| strutX (0.1 * matrixWidth p) ||| colorBar # alignT) # centerXY),newDataset)
         Vertical ->
             let gD = centerXY $ vcat' catOptSetteing $
                      map (\(r,t) -> alignL $ r ||| strutX (2*sep') ||| t) legends
-            in (centerXY (heatPlot ||| (gD # alignL # centerY === strutY (0.1 * matrixHeight para) === colorBar # alignL) # centerXY),newDataset)
+            in (centerXY (heatPlot ||| (gD # alignL # centerY === strutY (0.1 * matrixHeight p) === colorBar # alignL) # centerXY),newDataset)
 
 

@@ -37,8 +37,8 @@ import           System.FilePath
 cluDiffOpt :: ClustOpt
 cluDiffOpt = ClustOpt
   { colorOpt = color2
-  , rowCluster = Just (eucDis,UPGMA,LeftTree)
-  , colCluster = Just (eucDis,UPGMA,TopTree)}
+  , rowCluster = Nothing -- Just (eucDis,UPGMA,LeftTree)
+  , colCluster = Just (eucDis,UPGMA,BottomTree)}
 
 color1 = let cSet = brewerSet RdBu 11
          in Three (cSet !! 9) white (cSet !! 1)
@@ -81,7 +81,7 @@ parseTSV doNormalization datFile labelFile = do
         return .
         (\(h:ts) ->
           let sIDs = V.fromList $ tail h
-              grIDs = V.map (sampleHash H.!) sIDs
+              grIDs = V.map (sampleHash `myIdx`) sIDs
               gIDs = V.fromList $ map head ts
               j = V.length sIDs
               i = V.length gIDs
@@ -93,6 +93,9 @@ parseTSV doNormalization datFile labelFile = do
           in Dataset (Just gIDs) (Just sIDs) (Just grIDs) m
         ) . map (T.split (== '\t')) . T.lines . T.filter (/= '\r')
   where
+    myIdx h k = if k `H.member` h
+                then h H.! k
+                else error $ show k
     fromRight :: Show a => Either a b -> b
     fromRight (Right b) = b
     fromRight (Left a) = error $ show a
@@ -109,5 +112,5 @@ main = do
        j = fromIntegral $ nCol $ datM dataset
        i = fromIntegral $ nRow $ datM dataset
        para = mkPara (read w) (read h) i j (vMin,vMean,vMax)
-   renderCairo (replaceExtension datFile "pdf") (Width 600) $ pad 1.03 $ fst $ plotHeatMap para dataset
+   renderCairo (replaceExtension datFile "pdf") (mkWidth 600) $ pad 1.03 $ fst $ plotHeatMap para dataset
 

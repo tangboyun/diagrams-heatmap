@@ -28,7 +28,7 @@ library
   build-depends:       base,
                        cairo ,
                        colour,
-                       diagrams-lib >= 1.2 ,
+                       diagrams-lib >= 1.3 ,
                        directory,
                        hierarchical-clustering,
                        split,
@@ -41,7 +41,8 @@ library
                        data-default-class
                        
   ghc-options:         -Wall
-
+  default-language:    Haskell2010
+                       
 executable colorBar
   main-is:             colorBar.hs
   build-depends:       base >=4.7 && < 5,

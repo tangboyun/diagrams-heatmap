@@ -37,10 +37,10 @@ import           Data.Colour.RGBSpace.HSL
 import           Data.Colour.SRGB
 import           Data.Foldable                (toList)
 import           Data.Function
-import           Data.List
+import           Data.List                    hiding (uncons)
 import           Data.List.Split
 import           Data.Maybe
-import           Diagrams.Prelude             hiding (trace)
+import           Diagrams.Prelude             hiding (elements, size, trace)
 import           Diagrams.TwoD.Image
 import           Diagrams.TwoD.Text
 import           Text.Printf

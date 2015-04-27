@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module :
@@ -28,7 +29,7 @@ fixedWidth w = second (subtract half_w) . go half_w
             (l', !y')  = go y  l
             (r', !y'') = go y' r
 
-dendrogramPath :: Dendrogram Double -> Path R2
+dendrogramPath :: Dendrogram Double -> Path V2 Double
 dendrogramPath = mconcat . fst . go []
     where
       go acc (Leaf x)       = (acc, (x, 0))

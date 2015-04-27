@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts,TypeFamilies #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module : 
@@ -26,11 +26,11 @@ import           Diagrams.HeatMap.Type
 import           Diagrams.HeatMap.Unsafe
 
 
-toTree :: (Renderable (Path R2) b,Backend b R2)
+toTree :: (Renderable (Path V2 Double) b,Backend b V2 Double)
        => Double
        -> Double
        -> Dendrogram a
-       -> (Diagram b R2,Double)
+       -> (QDiagram b V2 Double Any,Double)
 toTree lineW elemWidth dendro =
     let (path,wid) = first (dendrogramPath . fmap snd) $
                      fixedWidth elemWidth dendro
@@ -70,13 +70,13 @@ clustering cluOpt m =
         fmap colFunc . colCluster) cluOpt
        
 
-mkColorBar :: (Renderable (Path R2) b, Renderable Text b,Backend b R2)
+mkColorBar :: (Renderable (Path V2 Double) b, Renderable (Text Double) b,Backend b V2 Double)
            => (Double,Double)
            -> ColorOpt
            -> ColorVal
            -> Pos
            -> String
-           -> Diagram b R2
+           -> QDiagram b V2 Double Any
 mkColorBar (w,h) color (ColorVal vMin vMean vMax) pos fName =
     let toText = printf "%.1f"
         tMin = toText vMin
@@ -136,48 +136,48 @@ mkColorBar (w,h) color (ColorVal vMin vMean vMax) pos fName =
                                 ] 
 
 -- |
-plotColorBar :: (Renderable (Path R2) b, Renderable Text b,Backend b R2)
-         => Para -> Diagram b R2
-plotColorBar para = mkColorBar (w,h) color (colorVal para) pos fName
+plotColorBar :: (Renderable (Path V2 Double) b, Renderable (Text Double) b,Backend b V2 Double)
+         => Para -> QDiagram b V2 Double Any
+plotColorBar p = mkColorBar (w,h) color (colorVal p) pos fName
   where
     ratio = 0.5
-    pos = colorBarPos para
-    fName = fontName para
-    w = case colorBarPos para of
-        Horizontal -> ratio * matrixWidth para
-        Vertical -> ratio * matrixHeight para 
-    h = legendFontSize para
-    color = colorOpt . clustOpt $ para
+    pos = colorBarPos p
+    fName = fontName p
+    w = case colorBarPos p of
+        Horizontal -> ratio * matrixWidth p
+        Vertical -> ratio * matrixHeight p 
+    h = legendFontSize p
+    color = colorOpt . clustOpt $ p
 
-plotMatrix :: (Renderable (Path R2) b, Renderable (DImage External) b,Renderable Text b,
-             Backend b R2)
-           => Para -> Matrix -> Diagram b R2
-plotMatrix para m =
-    case tradeOff para of
-        Performance -> plotMatrixPerformance para m
-        Quality -> plotMatrixQuality para m
+plotMatrix :: (Renderable (Path V2 Double) b, Renderable (DImage Double External) b,Renderable (Text Double) b,
+             Backend b V2 Double)
+           => Para -> Matrix -> QDiagram b V2 Double Any
+plotMatrix p m =
+    case tradeOff p of
+        Performance -> plotMatrixPerformance p m
+        Quality -> plotMatrixQuality p m
         
-plotMatrixPerformance :: (Renderable (Path R2) b, Renderable (DImage External) b,
-             Backend b R2) =>
-            Para -> Matrix -> Diagram b R2
-plotMatrixPerformance para m =
+plotMatrixPerformance :: (Renderable (Path V2 Double) b, Renderable (DImage Double External) b,
+             Backend b V2 Double) =>
+            Para -> Matrix -> QDiagram b V2 Double Any
+plotMatrixPerformance p m =
     image $
     DImage
-    (ImageRef (plotMatrixCairo para m))
-    (round $ matrixWidth para)
-    (round $ matrixHeight para)
+    (ImageRef (plotMatrixCairo p m))
+    (round $ matrixWidth p)
+    (round $ matrixHeight p)
     mempty
     
 
-plotMatrixQuality :: (Renderable (Path R2) b, Renderable Text b,
-             Backend b R2) =>
-            Para -> Matrix -> Diagram b R2
-plotMatrixQuality para m =
+plotMatrixQuality :: (Renderable (Path V2 Double) b, Renderable (Text Double) b,
+             Backend b V2 Double) =>
+            Para -> Matrix -> QDiagram b V2 Double Any
+plotMatrixQuality p m =
     let iCol = nCol m
         iRow = nRow m
         vec = dat m
-        mH = matrixHeight para
-        mW = matrixWidth para
+        mH = matrixHeight p
+        mW = matrixWidth p
         h = mH / fromIntegral iRow
         w = mW / fromIntegral iCol
         ls = [0..UV.length vec - 1]
@@ -186,23 +186,23 @@ plotMatrixQuality para m =
             centerXY $ vcat $ map hcat $ chunksOf iCol $
             map (\idx ->
                   let v = vec `atUV` idx
-                      c = chooseColor para v
+                      c = chooseColor p v
                   in rect w h # lcA transparent # fc c) ls
         ColumnMajor ->
             centerXY $ hcat $ map vcat $ chunksOf iRow $
             map (\idx ->
                   let v = vec `atUV` idx
-                      c = chooseColor para v
+                      c = chooseColor p v
                   in rect w h # lcA transparent # fc c) ls
 
 
-mkLabels :: (Backend b R2,Renderable (Path R2) b,Renderable Text b)
+mkLabels :: (Backend b V2 Double,Renderable (Path V2 Double) b,Renderable (Text Double) b)
          => Bool
          -> Double
          -> Double
          -> String
          -> Maybe (V.Vector T.Text)
-         -> [Diagram b R2]
+         -> [QDiagram b V2 Double Any]
 mkLabels isLeft sizeFont maxSize fName textVec =
     let wVsH = 0.7
         size = if sizeFont > maxSize
@@ -229,13 +229,13 @@ mkLabels isLeft sizeFont maxSize fName textVec =
                         # alignR
                  ) . T.unpack) $ V.toList tVec
     
-mkGroupLegend :: (Renderable (Path R2) b,Renderable Text b,Backend b R2)
+mkGroupLegend :: (Renderable (Path V2 Double) b,Renderable (Text Double) b,Backend b V2 Double)
               => Pos
               -> Double
               -> Double
               -> String
               -> HashMap T.Text (Colour Double)
-              -> [(Diagram b R2,Diagram b R2)]
+              -> [(QDiagram b V2 Double Any,QDiagram b V2 Double Any)]
 mkGroupLegend p w h f hash =
     let wVsH = 0.7
     in map (\(t,c) ->
