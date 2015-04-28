@@ -1,20 +1,20 @@
 -----------------------------------------------------------------------------
 -- |
--- Module : 
+-- Module :
 -- Copyright : (c) 2013 Boyun Tang
 -- License : BSD-style
 -- Maintainer : tangboyun@hotmail.com
 -- Stability : experimental
 -- Portability : ghc
 --
--- 
+--
 --
 -----------------------------------------------------------------------------
 module Diagrams.HeatMap.Impl where
 
 import           Data.Colour
-import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as UV
+import qualified Data.Vector           as V
+import qualified Data.Vector.Unboxed   as UV
 import           Diagrams.HeatMap.Type
 
 atV :: V.Vector a -> Int -> a
@@ -29,11 +29,11 @@ chooseColor :: Para -> Double -> Colour Double
 {-# INLINE chooseColor #-}
 chooseColor para v' =
     let ColorVal vMin vMean vMax = colorVal para
-    	v = if v' < vMin
-	    then vMin
-	    else if v' > vMax
-	         then vMax
-		 else v'
+        v = if v' < vMin
+            then vMin
+            else if v' > vMax
+                 then vMax
+                 else v'
     in case colorOpt . clustOpt $ para of
         Two lC hC -> blend ((v-vMin)/(vMax-vMin)) hC lC
         Three lC mC hC ->
