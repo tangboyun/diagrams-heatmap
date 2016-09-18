@@ -83,7 +83,7 @@ mkColorBar (w,h) color (ColorVal vMin vMean vMax) pos fName =
         tMax = toText vMax
         tMean = toText vMean
         fontH = 0.5 * h
-        toColorbar sts = rect w h # fillTexture (mkLinearGradient sts ((-0.5*w) ^& 0) (0.5*w ^& h) GradPad)
+        toColorbar sts = rect w h # lwL 0.01 # lcA transparent # fillTexture (mkLinearGradient sts ((-0.5*w) ^& 0) (0.5*w ^& 0) GradPad)
     in case color of
         Two lC hC ->
             let stops = mkStops [(lC,0,1),(hC,1,1)]
